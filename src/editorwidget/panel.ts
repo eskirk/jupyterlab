@@ -1,3 +1,4 @@
+import { contentFactoryPlugin } from '../console/plugin';
 
 import { editorFactory } from '../../test/src/console/utils';
 import { mimeTypeService } from '../../test/src/notebook/utils';
@@ -29,7 +30,7 @@ import {
 } from 'phosphor/lib/core/token';
 
 import {
-  EditorWidget
+  EditorWidget, EditorWidgetFactory
 } from './widget'
 
 
@@ -52,12 +53,12 @@ class EditorPanel extends Widget {
     this.addClass(EDITOR_PANEL);
     this.rendermime = options.rendermime;
     // this.clipboard = options.clipboard;
-    // let factory = this.contentFactory = options.contentFactory;
+    let factory = this.contentFactory = options.contentFactory;
 
     this.layout = new PanelLayout()
     let edOptions = {
       rendermime: this.rendermime,
-      // contentFactory: factory.editorContentFactory
+      contentFactory: factory.editorContentFactory
       // mimeTypeService: options.mimeTypeService
     }
     /**
@@ -68,6 +69,8 @@ class EditorPanel extends Widget {
      */
     // this.editor = factory.createEditor(edOptions);
     // let toolbar = factory.createToolbar();
+    // layout.addWidget(toolbar)
+    // layout.addWidget(this.editor)
 
 
   }
@@ -86,6 +89,8 @@ class EditorPanel extends Widget {
    * The editor used by the widget
    */
   readonly editor: EditorWidget;
+
+  readonly contentFactory: EditorPanel.IContentFactory;
 
 
 }
@@ -114,4 +119,5 @@ export namespace EditorPanel {
   // export
   // const IContentFactory = new Token<IContentFactory>('jupyter.services.editor.content-factory');
   /* tslint:enable */
+
 }
