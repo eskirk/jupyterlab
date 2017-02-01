@@ -62,7 +62,9 @@ class EditorPanel extends Widget {
       // mimeTypeService: options.mimeTypeService
     }
     /**
-     * These two calls below are repsonsible for what I am trying to do. 
+     * TODO
+     * Once all the implementation is squared away, this is how I actually
+     * attach a toolbar to the panel
      * 
      * I need to make a call to the editor constructor and the toolbar constructor
      * and attach those two things to the layout. 
@@ -90,6 +92,7 @@ class EditorPanel extends Widget {
    */
   readonly editor: EditorWidget;
 
+
   readonly contentFactory: EditorPanel.IContentFactory;
 
 
@@ -112,12 +115,94 @@ export namespace EditorPanel {
     contentFactory: IContentFactory;
   }
 
-  /* tslint:disable */
+  export
+  interface IContentFactory {
+
+    /**
+     * The content factory for an EditorWidget
+     */
+    readonly editorContentFactory: EditorWidgetFactory
+
+     /**
+     * The editor factory.
+     */
+    readonly editorFactory: CodeEditor.Factory;
+
+    /**
+     * Creates a new toolbar for the panel
+     */
+    createToolbar(): Toolbar<Widget>;
+
+  
+}
+
   /**
    * The notebook renderer token.
    */
   // export
   // const IContentFactory = new Token<IContentFactory>('jupyter.services.editor.content-factory');
-  /* tslint:enable */
 
+
+  /**
+   * The default implementation of an `IContentFactory`.
+   */
+  export
+  class ContentFactory implements IContentFactory {
+    /**
+     * Creates a new renderer.
+     */
+    constructor(options: ContentFactory.IOptions) {
+      this.editorFactory = options.editorFactory;
+      /**
+       * TODO
+       * Ask Bryan how to correctly implement a content factory like this 
+       */
+      this.editorContentFactory = (options.editorFactory ||
+        new EditorPanel.ContentFactory({
+          editorFactory: this.editorFactory,
+          editorContentFactory: this.editorContentFactory
+        })
+      );
+    }
+
+    /**
+     * The editor factory.
+     */
+    readonly editorFactory: CodeEditor.Factory;
+
+    /**
+     * The content factory for an EditorWidget
+     */
+    readonly editorContentFactory: EditorWidgetFactory
+
+    /**
+     * Create a new toolbar for the panel.
+     */
+    createToolbar(): Toolbar<Widget> {
+      return new Toolbar();
+    }
+   }
+
+   /**
+   * The namespace for `ContentFactory`.
+   */
+  export
+  namespace ContentFactory {
+    /**
+     * An initialization options for a notebook panel content factory.
+     */
+    export
+    interface IOptions {
+      /**
+       * The editor factory.
+       */
+      editorFactory: CodeEditor.Factory;
+
+      /**
+     * The content factory for an EditorWidget
+     */
+    readonly editorContentFactory: EditorWidgetFactory
+
+    }
+  }
 }
