@@ -1,7 +1,8 @@
+import { IClipboard } from '../clipboard';
 import { contentFactoryPlugin } from '../console/plugin';
 
 import { editorFactory } from '../../test/src/console/utils';
-import { mimeTypeService } from '../../test/src/notebook/utils';
+import { clipboard, mimeTypeService } from '../../test/src/notebook/utils';
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
@@ -52,7 +53,7 @@ class EditorPanel extends Widget {
     super();
     this.addClass(EDITOR_PANEL);
     this.rendermime = options.rendermime;
-    // this.clipboard = options.clipboard;
+    this.clipboard = options.clipboard;
     let factory = this.contentFactory = options.contentFactory;
 
     this.layout = new PanelLayout()
@@ -69,10 +70,11 @@ class EditorPanel extends Widget {
      * I need to make a call to the editor constructor and the toolbar constructor
      * and attach those two things to the layout. 
      */
-    // this.editor = factory.createEditor(edOptions);
-    // let toolbar = factory.createToolbar();
-    // layout.addWidget(toolbar)
-    // layout.addWidget(this.editor)
+    let layout = this.layout as PanelLayout;
+    this.editor = factory.createEditor(edOptions);
+    let toolbar = factory.createToolbar();
+    layout.addWidget(toolbar)
+    layout.addWidget(this.editor)
 
 
   }
@@ -92,9 +94,15 @@ class EditorPanel extends Widget {
    */
   readonly editor: EditorWidget;
 
-
+  /**
+   * The content factory for the widget
+   */
   readonly contentFactory: EditorPanel.IContentFactory;
 
+  /**
+   * The clipboard instance for the widget
+   */
+  readonly clipboard: IClipboard;
 
 }
 
@@ -113,6 +121,11 @@ export namespace EditorPanel {
      * The content factory for the panel
      */
     contentFactory: IContentFactory;
+
+    /**
+     * The clipboard instance used by the widget
+     */
+    clipboard: IClipboard;
   }
 
   export
@@ -129,9 +142,14 @@ export namespace EditorPanel {
     readonly editorFactory: CodeEditor.Factory;
 
     /**
-     * Creates a new toolbar for the panel
+     * Create a new toolbar for the panel
      */
     createToolbar(): Toolbar<Widget>;
+
+    /**
+     * Create a new editor widget for the panel
+     */
+    createEditor(options: EditorWidget.IOptions): EditorWidget;
 
   
 }
@@ -157,12 +175,12 @@ export namespace EditorPanel {
        * TODO
        * Ask Bryan how to correctly implement a content factory like this 
        */
-      this.editorContentFactory = (options.editorFactory ||
-        new EditorPanel.ContentFactory({
-          editorFactory: this.editorFactory,
-          editorContentFactory: this.editorContentFactory
-        })
-      );
+      // this.editorContentFactory = (options.editorFactory ||
+      //   new EditorPanel.ContentFactory({
+      //     editorFactory: this.editorFactory,
+      //     editorContentFactory: this.editorContentFactory
+      //   })
+      // );
     }
 
     /**
@@ -180,6 +198,13 @@ export namespace EditorPanel {
      */
     createToolbar(): Toolbar<Widget> {
       return new Toolbar();
+    }
+
+    /**
+     * Create a new editor 
+     */
+    createEditor(options: EditorWidget.IOptions): EditorWidget {
+      return new EditorWidget(options);
     }
    }
 
