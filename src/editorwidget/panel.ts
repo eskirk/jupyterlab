@@ -1,3 +1,4 @@
+import { IEditorServices } from '../../lib/codeeditor';
 import { IClipboard } from '../clipboard';
 import { contentFactoryPlugin } from '../console/plugin';
 
@@ -59,16 +60,21 @@ class EditorPanel extends Widget {
     this.layout = new PanelLayout()
     let edOptions = {
       rendermime: this.rendermime,
-      contentFactory: factory.editorContentFactory
+      contentFactory: factory.editorContentFactory,
       // mimeTypeService: options.mimeTypeService
     }
     /**
      * TODO
      * Once all the implementation is squared away, this is how I actually
      * attach a toolbar to the panel
-     * 
      * I need to make a call to the editor constructor and the toolbar constructor
      * and attach those two things to the layout. 
+     * 
+     * -Figure out what options object createdtor and createtoollbar will take
+     * -Implement the functions that create and instantiate the editor and toolbar
+     * -Add nested options into the options for toolbar and editor that will then be used a 
+     * code edtor and editorwidget down the line
+     * PanelFactory -> Panel -> EditorWidget & Toolbar
      */
     let layout = this.layout as PanelLayout;
     this.editor = factory.createEditor(edOptions);
@@ -139,7 +145,7 @@ export namespace EditorPanel {
      /**
      * The editor factory.
      */
-    readonly editorFactory: CodeEditor.Factory;
+    readonly editorFactory: EditorWidget.Factory;
 
     /**
      * Create a new toolbar for the panel
@@ -175,12 +181,12 @@ export namespace EditorPanel {
        * TODO
        * Ask Bryan how to correctly implement a content factory like this 
        */
-      // this.editorContentFactory = (options.editorFactory ||
-      //   new EditorPanel.ContentFactory({
-      //     editorFactory: this.editorFactory,
-      //     editorContentFactory: this.editorContentFactory
-      //   })
-      // );
+      this.editorContentFactory = (options.editorFactory ||
+        new EditorPanel.ContentFactory({
+          editorFactory: this.editorFactory,
+          editorContentFactory: this.editorContentFactory
+        })
+      );
     }
 
     /**
