@@ -1,3 +1,7 @@
+import { EditorWidgetFactory } from '../../lib/editorwidget';
+import { EditorWidgetFactory } from './';
+import { IDocumentManager } from '../../lib/docmanager';
+import { DocumentRegistry, IDocumentRegistry } from '../docregistry';
 import { IEditorServices } from '../../lib/codeeditor';
 import { IClipboard } from '../clipboard';
 import { contentFactoryPlugin } from '../console/plugin';
@@ -61,7 +65,7 @@ class EditorPanel extends Widget {
     let edOptions = {
       rendermime: this.rendermime,
       contentFactory: factory.editorContentFactory,
-      // mimeTypeService: options.mimeTypeService
+      mimeTypeService: options.mimeTypeService
     }
     /**
      * TODO
@@ -70,7 +74,7 @@ class EditorPanel extends Widget {
      * I need to make a call to the editor constructor and the toolbar constructor
      * and attach those two things to the layout. 
      * 
-     * -Figure out what options object createdtor and createtoollbar will take
+     * -Figure out what options object createditor and createtoollbar will take
      * -Implement the functions that create and instantiate the editor and toolbar
      * -Add nested options into the options for toolbar and editor that will then be used a 
      * code edtor and editorwidget down the line
@@ -110,6 +114,34 @@ class EditorPanel extends Widget {
    */
   readonly clipboard: IClipboard;
 
+  /**
+   * The document context for the widget.
+   *
+   * #### Notes
+   * Changing the context also changes the model on the
+   * `content`.
+   */
+  get context(): DocumentRegistry.IContext<DocumentRegistry.ICodeModel> {
+    return this._context;
+  }
+  set context(newValue: DocumentRegistry.IContext<DocumentRegistry.ICodeModel>) {
+    newValue = newValue || null;
+    if (newValue === this._context) {
+      return;
+    }
+    let oldValue = this._context;
+    this._context = newValue;
+    this.rendermime.resolver = newValue;
+    // Trigger private, protexted, and public changes.
+    // TODO
+    // this._onContextChanged(oldValue, newValue);
+    // this.onContextChanged(oldValue, newValue);
+    // this.contextChanged.emit(void 0);
+  }
+
+  private _context: DocumentRegistry.IContext<DocumentRegistry.ICodeModel> = null;
+
+
 }
 
 export namespace EditorPanel {
@@ -132,6 +164,11 @@ export namespace EditorPanel {
      * The clipboard instance used by the widget
      */
     clipboard: IClipboard;
+
+    /**
+     * The service used to look up mime types.
+     */
+    mimeTypeService: IEditorMimeTypeService
   }
 
   export
@@ -142,10 +179,10 @@ export namespace EditorPanel {
      */
     readonly editorContentFactory: EditorWidgetFactory
 
-     /**
-     * The editor factory.
-     */
-    readonly editorFactory: EditorWidget.Factory;
+    //  /**
+    //  * The editor factory.
+    //  */
+    // readonly editorFactory: EditorWidget.EditorWidgetFactory;
 
     /**
      * Create a new toolbar for the panel
@@ -183,8 +220,9 @@ export namespace EditorPanel {
        */
       this.editorContentFactory = (options.editorFactory ||
         new EditorPanel.ContentFactory({
-          editorFactory: this.editorFactory,
-          editorContentFactory: this.editorContentFactory
+          editorFactory: this.editorContentFactory,
+          editorContentFactory: this.editorContentFactory,
+          mimeTypeService: this.mimeTypeService
         })
       );
     }
@@ -192,12 +230,17 @@ export namespace EditorPanel {
     /**
      * The editor factory.
      */
-    readonly editorFactory: CodeEditor.Factory;
+    readonly editorFactory: EditorWidgetFactory;
 
     /**
      * The content factory for an EditorWidget
      */
-    readonly editorContentFactory: EditorWidgetFactory
+    readonly editorContentFactory: EditorWidgetFactory;
+
+    /**
+     * The service used to look up mime types.
+     */
+    readonly mimeTypeService: IEditorMimeTypeService;
 
     /**
      * Create a new toolbar for the panel.
@@ -227,12 +270,17 @@ export namespace EditorPanel {
       /**
        * The editor factory.
        */
-      editorFactory: CodeEditor.Factory;
+      editorFactory: EditorWidgetFactory;
 
       /**
-     * The content factory for an EditorWidget
-     */
-    readonly editorContentFactory: EditorWidgetFactory
+      * The content factory for an EditorWidget
+      */
+      editorContentFactory: EditorWidgetFactory
+
+      /**
+      * The service used to look up mime types.
+      */
+      mimeTypeService: IEditorMimeTypeService
 
     }
   }
