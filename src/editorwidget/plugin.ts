@@ -1,3 +1,4 @@
+import { IDocumentManager } from '../docmanager';
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
@@ -24,6 +25,14 @@ import {
 import {
   IEditorTracker, EditorWidget, EditorWidgetFactory, CommandIDs, addDefaultCommands
 } from './';
+
+import {
+  EditorPanel
+} from './panel';
+
+import {
+  DocumentRegistry
+} from '../docregistry';
 
 
 /**
@@ -75,6 +84,19 @@ function activate(app: JupyterLab, registry: IDocumentRegistry, restorer: IInsta
   const tracker = new InstanceTracker<EditorWidget>({
     namespace: 'editor',
     shell
+  });
+  
+  // TODO
+  const panelFactory = new EditorPanel({
+    widgetFactoryOptions: {
+      editorServices,
+      factoryOptions: {
+        name: FACTORY,
+        fileExtensions: ['*'],
+        defaultFor: ['*']
+      }
+    },
+    registry
   });
 
   // Handle state restoration.
